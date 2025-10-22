@@ -20,8 +20,9 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
 
   const inputDir = path.dirname(file.path); // folder gde su JSON + STL fajlovi
   const outputDir = "/mnt/d/temp/output";
+  const baseName = path.parse(file.originalname).name; // ime fajla bez ekstenzije
   const runtimeDir = path.join(outputDir, "runtime"); // folder za XDG_RUNTIME_DIR
-  const outputFile = path.join(outputDir, `${file.originalname}.3mf`);
+  const outputFile = path.join(outputDir, `${baseName}.3mf`);
 
   try {
     // Pokrećemo docker container sa Bambu Studio CLI
@@ -39,7 +40,7 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
         `--load-filaments "/data/filament.json"`,
         "--slice 0",
         "--debug 5",
-        `--export-3mf /output/${file.originalname}.3mf`,
+        `--export-3mf /output/${baseName}.3mf`,
         `/data/${file.originalname}`,
       ].join(" ");
 
