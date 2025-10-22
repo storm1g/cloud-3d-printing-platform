@@ -7,22 +7,24 @@ import fs from "fs/promises";
 const router = express.Router();
 const upload = multer({ dest: "tmp/" });
 
-// Definišemo custom tip requesta koji ima file
+// ✅ Koristimo tip koji zna da postoji `file`
 interface MulterRequest extends Request {
-  file?: Express.Multer.File;
+  file: Express.Multer.File; // više nije optional
 }
 
-router.post("/", upload.single("file"), async (req: MulterRequest, res: Response) => {
-  if (!req.file) {
+router.post("/", upload.single("file"), async (req: Request, res: Response) => {
+  const file = (req as MulterRequest).file; // ✅ eksplicitno castujemo
+
+  if (!file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  const inputFile = path.resolve(req.file.path);
+  const inputFile = path.resolve(file.path);
   const outputDir = path.resolve("tmp");
-  const outputFile = path.join(outputDir, `${req.file.originalname}.3mf`);
+  const outputFile = path.join(outputDir, `${file.originalname}.3mf`);
 
   try {
-    // Pokreni docker container sa slicerom
+    // ✅ Pokrećemo docker container sa Bambu Studio CLI
     await new Promise<void>((resolve, reject) => {
       const cmd = [
         "docker run --rm",
@@ -30,16 +32,18 @@ router.post("/", upload.single("file"), async (req: MulterRequest, res: Response
         `-v "${outputDir}:/output"`,
         "bambu-cli",
         "--slice 0",
-        `--export-3mf /output/${req.file.originalname}.3mf`,
+        `--export-3mf /output/${file.originalname}.3mf`,
         "/data/input.stl",
       ].join(" ");
 
+      console.log("Running:", cmd);
+
       exec(cmd, (error, stdout, stderr) => {
         if (error) {
-          console.error(stderr);
+          console.error("❌ Docker error:", stderr);
           return reject(error);
         }
-        console.log(stdout);
+        console.log("✅ Docker output:", stdout);
         resolve();
       });
     });
@@ -56,7 +60,7 @@ router.post("/", upload.single("file"), async (req: MulterRequest, res: Response
     console.error(err);
     res.status(500).json({ error: "Slicing failed" });
   } finally {
-    // Očisti privremeni input fajl
+    // ✅ Očisti privremeni fajl
     await fs.unlink(inputFile);
   }
 });
