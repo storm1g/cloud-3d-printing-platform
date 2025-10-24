@@ -47,29 +47,22 @@ export default function UploadForm() {
     formData.append("file", selectedFile);
 
     try {
-      // Simulacija faza (kasnije zamenjujemo realnim API pozivima)
+      // Simulacija faza (mock backend)
       await new Promise((r) => setTimeout(r, 1000));
       setStage("slicing");
       await new Promise((r) => setTimeout(r, 1000));
       setStage("calculating");
       await new Promise((r) => setTimeout(r, 1000));
 
-      // Ovde ide pravi API poziv
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Upload failed");
-
+      // Mock rezultat umesto API poziva
       setStage("done");
       setMessage({ text: "File processed successfully!", type: "success" });
 
-      // Mock rezultati (kasnije menjamo pravim podacima iz API-ja)
       setResult({
         fileName: selectedFile.name,
-        estimatedTime: "3h 42m",
-        materialUsage: "28.6g (PLA)",
-        layerCount: 142,
+        estimatedTime: "2h 45m",
+        materialUsage: "23.4g (PLA)",
+        layerCount: 118,
       });
 
       setSelectedFile(null);
