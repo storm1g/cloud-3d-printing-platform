@@ -199,72 +199,95 @@ export default function UploadForm() {
   };
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFile) return;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!selectedFile) return;
 
-    setIsProcessing(true);
-    setStage("creatingJob");
-    setMessage({ text: "", type: null });
-    setResult(null);
-    setCurrentJobId(null);
-    webSocketRef.current?.close(); // Close any previous connection
+  // --- Configuration Check ---
+  // Check if the environment variables are loaded before proceeding.
+  if (!REST_API_ENDPOINT) {
+    console.error(
+      "REST_API_ENDPOINT is not defined. Check .env.local or Amplify environment variables."
+    );
+    setMessage({
+      text: "Configuration error: API endpoint is missing.",
+      type: "error",
+    });
+    setStage("failed"); // Go to a failed state
+    setIsProcessing(false); // Stop the spinner
+    return; // Stop the submission
+  }
+  if (!WEBSOCKET_URL) {
+    console.error(
+      "WEBSOCKET_URL is not defined. Check .env.local or Amplify environment variables."
+    );
+    setMessage({
+      text: "Configuration error: WebSocket URL is missing.",
+      type: "error",
+    });
+    setStage("failed"); // Go to a failed state
+    setIsProcessing(false); // Stop the spinner
+    return; // Stop the submission
+  }
+  // --- End Configuration Check ---
 
+  setIsProcessing(true);
+  setStage("creatingJob");
+  setMessage({ text: "", type: null });
+  setResult(null);
+  setCurrentJobId(null);
+  webSocketRef.current?.close(); // Close any previous connection
 
-    try {
-      // 1. Call API Gateway to get JobID and Presigned URL
-      setMessage({ text: "Requesting upload link...", type: "info" });
-      const createJobResponse = await fetch(REST_API_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ fileName: selectedFile.name }),
-      });
+  try {
+    // 1. Call API Gateway to get JobID and Presigned URL
+    setMessage({ text: "Requesting upload link...", type: "info" });
+    const createJobResponse = await fetch(REST_API_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ fileName: selectedFile.name }),
+    });
 
-      if (!createJobResponse.ok) {
-        throw new Error(`Failed to create job: ${createJobResponse.statusText}`);
-      }
-
-      const { jobId, presignedUrl, s3Key } = await createJobResponse.json();
-      setCurrentJobId(jobId); // Store the jobId
-      console.log(`Job created: ${jobId} S3 Key: ${s3Key}`); // Log S3 Key as well
-
-      // 2. Upload file directly to S3 using the Presigned URL
-      setStage("uploading");
-      setMessage({ text: "Uploading file to secure storage...", type: "info" });
-      // Note: No 'Content-Type' needed for PUT usually if presigned URL includes it
-      // AWS SDK S3 Presigner typically does. Let's try without first.
-      const uploadResponse = await fetch(presignedUrl, {
-        method: "PUT",
-        body: selectedFile,
-        // headers: { // Add Content-Type if upload fails without it
-        //   'Content-Type': selectedFile.type || 'application/octet-stream'
-        // }
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`S3 Upload failed: ${uploadResponse.statusText}`);
-      }
-
-      console.log("File uploaded successfully to S3");
-      setMessage({ text: "File uploaded. Connecting for status updates...", type: "info" });
-
-      // 3. Connect WebSocket and Subscribe
-      connectWebSocket(jobId);
-
-
-    } catch (error) {
-      console.error("Error during submit:", error);
-      setMessage({
-        text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-        type: "error",
-      });
-      setStage("failed");
-      setIsProcessing(false); // Stop processing on error
+    if (!createJobResponse.ok) {
+      throw new Error(`Failed to create job: ${createJobResponse.statusText}`);
     }
-    // Note: setIsProcessing(false) is now handled within WebSocket events or catch block
-  };
+
+    const { jobId, presignedUrl, s3Key } = await createJobResponse.json();
+    setCurrentJobId(jobId); // Store the jobId
+    console.log(`Job created: ${jobId} S3 Key: ${s3Key}`); // Log S3 Key as well // 2. Upload file directly to S3 using the Presigned URL
+
+    setStage("uploading");
+    setMessage({ text: "Uploading file to secure storage...", type: "info" }); // Note: No 'Content-Type' needed for PUT usually if presigned URL includes it // AWS SDK S3 Presigner typically does. Let's try without first.
+    const uploadResponse = await fetch(presignedUrl, {
+      method: "PUT",
+      body: selectedFile, // headers: { // Add Content-Type if upload fails without it //   'Content-Type': selectedFile.type || 'application/octet-stream' // }
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error(`S3 Upload failed: ${uploadResponse.statusText}`);
+    }
+
+    console.log("File uploaded successfully to S3");
+    setMessage({
+      text: "File uploaded. Connecting for status updates...",
+      type: "info",
+    }); // 3. Connect WebSocket and Subscribe
+
+    connectWebSocket(jobId);
+  } catch (error) {
+    console.error("Error during submit:", error);
+    setMessage({
+      text: `Error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      type: "error",
+    });
+    setStage("failed");
+    setIsProcessing(false); // Stop processing on error
+  } // Note: setIsProcessing(false) is now handled within WebSocket events or catch block
+};
+
 
   // Helper function to format duration
   const formatDuration = (totalSeconds: number): string => {
