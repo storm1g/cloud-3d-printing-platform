@@ -109,9 +109,6 @@ export default function UploadForm() {
   };
 
   const connectWebSocket = (jobId: string) => {
-    // if (webSocketRef.current) {
-    //   webSocketRef.current.close(); // Close existing connection if any
-    // }
     if (!WEBSOCKET_URL) {
       console.error(
         "WEBSOCKET_URL is not defined. Check .env.local or Amplify environment variables."
