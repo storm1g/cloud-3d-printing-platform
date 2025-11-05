@@ -15,13 +15,13 @@ This flow covers how a user uploads a file and subscribes to job status updates.
 1. **User (Frontend)** calls **REST API Gateway** (`POST /job`) with the file name.  
 2. **API Gateway** triggers the `CreateJobLambda` (**Porter**).  
 3. **CreateJobLambda** performs the following:
-   - 🆔 Generates a unique `jobId`.  
-   - 🗂️ Creates a new entry in the **DynamoDB table** (`PrintPlatformJobs`) with a status of `PendingUpload`.  
-   - 🔗 Generates an **S3 Presigned URL** (temporary upload link) for the uploads bucket.  
+   - Generates a unique `jobId`.  
+   - Creates a new entry in the **DynamoDB table** (`PrintPlatformJobs`) with a status of `PendingUpload`.  
+   - Generates an **S3 Presigned URL** (temporary upload link) for the uploads bucket.  
 4. The Lambda returns both `jobId` and `presignedUrl` to the frontend.  
 5. The **Frontend** performs two actions simultaneously:
-   - 📤 Uses the `presignedUrl` to upload the `.stl` file directly to the **S3 Uploads Bucket**.  
-   - 🌐 Opens a connection to the **WebSocket API Gateway**.  
+   - Uses the `presignedUrl` to upload the `.stl` file directly to the **S3 Uploads Bucket**.  
+   - Opens a connection to the **WebSocket API Gateway**.  
 6. The **WebSocket API** triggers the `SubscribeJobHandler` Lambda (on the `subscribeJob` route),  
    which writes the `connectionId` into the same DynamoDB row, associating the user with the job.  
 
@@ -37,10 +37,10 @@ This flow runs automatically once the upload from Flow 1 completes.
    - Starts the **Step Function** `"Manager"` (`SlicingOrchestrator`) and passes it the `jobId` and file paths.  
 3. The **Step Function** runs the **ECS Fargate Task** (**Worker**).  
 4. The **Fargate Task** (Docker container) performs:
-   - ⬇️ Downloads config files from the **S3 Config Bucket**.  
-   - 📦 Downloads the `.stl` file from the **S3 Uploads Bucket**.  
-   - 🧠 Executes the **Bambu Studio CLI**.  
-   - ⬆️ Uploads the resulting `.3mf` file to the **S3 Processed Bucket**.  
+   - Downloads config files from the **S3 Config Bucket**.  
+   - Downloads the `.stl` file from the **S3 Uploads Bucket**.  
+   - Executes the **Bambu Studio CLI**.  
+   - Uploads the resulting `.3mf` file to the **S3 Processed Bucket**.  
 5. The **S3 Processed Bucket** detects the new `.3mf` file and triggers the `CalculatePriceLambda` (**Accountant**).  
 6. **CalculatePriceLambda**:
    - Updates the status in **DynamoDB** to `Calculating`.  
