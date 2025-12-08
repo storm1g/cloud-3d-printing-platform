@@ -54,11 +54,11 @@ resource "aws_s3_bucket" "processed" {
 # --- SECURITY: BLOCK PUBLIC ACCESS ---
 
 resource "aws_s3_bucket_public_access_block" "block_public" {
-  for_each = toset([
-    aws_s3_bucket.uploads.id,
-    aws_s3_bucket.config.id,
-    aws_s3_bucket.processed.id
-  ])
+  for_each = {
+    uploads   = aws_s3_bucket.uploads.id
+    config    = aws_s3_bucket.config.id
+    processed = aws_s3_bucket.processed.id
+  }
 
   bucket = each.value
 
