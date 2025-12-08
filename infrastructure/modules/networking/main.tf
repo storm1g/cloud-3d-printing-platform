@@ -51,3 +51,23 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
+
+resource "aws_security_group" "fargate_sg" {
+  name        = "${var.project_name}-${var.environment}-fargate-sg"
+  description = "Allow outbound access for Fargate"
+  vpc_id      = aws_vpc.main.id
+
+  # OUTBOUND: Allow All (Download updates, talk to S3)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # INBOUND: None (Secure by default)
+  
+  tags = {
+    Name = "${var.project_name}-${var.environment}-fargate-sg"
+  }
+}
