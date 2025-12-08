@@ -22,6 +22,14 @@ output "config_bucket_name" {
   value = aws_s3_bucket.config.id
 }
 
+output "config_bucket_arn" {
+  value = aws_s3_bucket.config.arn
+}
+
 output "processed_bucket_name" {
   value = aws_s3_bucket.processed.id
+}
+
+output "processed_bucket_arn" {
+  value = aws_s3_bucket.processed.arn
 }
