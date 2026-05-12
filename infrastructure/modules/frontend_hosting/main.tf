@@ -13,6 +13,10 @@
 #   Our app uses Next.js 15 App Router, so WEB_COMPUTE is mandatory.
 # =============================================================================
 
+locals {
+  frontend_app_root = "apps/frontend"
+}
+
 resource "aws_amplify_app" "frontend" {
   name       = "${var.project_name}-frontend"
   repository = var.github_repository
@@ -31,27 +35,27 @@ resource "aws_amplify_app" "frontend" {
   # run from there, and artifact paths are relative to it.
   # So baseDirectory: .next means apps/frontend/.next from the repo root.
   # ---------------------------------------------------------------------------
-  build_spec = <<-EOT
-    version: 1
-    applications:
-      - appRoot: apps/frontend
-        frontend:
-          phases:
-            preBuild:
-              commands:
-                - npm ci
-            build:
-              commands:
-                - npm run build
-          artifacts:
-            baseDirectory: .next
-            files:
-              - '**/*'
-          cache:
-            paths:
-              - node_modules/**/*
-              - .next/cache/**/*
-  EOT
+  build_spec = <<EOT
+version: 1
+applications:
+  - appRoot: ${local.frontend_app_root}
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*
+EOT
 
   # ---------------------------------------------------------------------------
   # Environment variables injected at BUILD TIME.
@@ -65,6 +69,7 @@ resource "aws_amplify_app" "frontend" {
   # into the JS bundle at build time, not resolved at runtime.
   # ---------------------------------------------------------------------------
   environment_variables = {
+    AMPLIFY_MONOREPO_APP_ROOT     = local.frontend_app_root
     NEXT_PUBLIC_REST_API_ENDPOINT = var.rest_api_endpoint
     NEXT_PUBLIC_WEBSOCKET_URL     = var.websocket_url
     # Tell Next.js we're running on Amplify's SSR compute platform
