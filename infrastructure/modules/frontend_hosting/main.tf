@@ -24,33 +24,33 @@ resource "aws_amplify_app" "frontend" {
   platform = "WEB_COMPUTE"
 
   # ---------------------------------------------------------------------------
-  # Build spec — tells Amplify how to install, build, and where to find output.
+  # Build spec — Amplify auto-detects monorepos from the apps/ folder structure
+  # and requires the "applications" key format instead of the standard "frontend" key.
   #
-  # Our repo is a monorepo: the Next.js app lives under apps/frontend/.
-  # We use `cd apps/frontend` as the first step so all npm commands run there.
-  #
-  # baseDirectory: after `npm run build`, Next.js outputs to apps/frontend/.next
-  # The `**/*` glob captures everything Amplify needs to serve the app.
+  # appRoot: tells Amplify which subdirectory is the app root — all commands
+  # run from there, and artifact paths are relative to it.
+  # So baseDirectory: .next means apps/frontend/.next from the repo root.
   # ---------------------------------------------------------------------------
   build_spec = <<-EOT
     version: 1
-    frontend:
-      phases:
-        preBuild:
-          commands:
-            - cd apps/frontend
-            - npm ci
-        build:
-          commands:
-            - npm run build
-      artifacts:
-        baseDirectory: apps/frontend/.next
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - apps/frontend/node_modules/**/*
-          - apps/frontend/.next/cache/**/*
+    applications:
+      - appRoot: apps/frontend
+        frontend:
+          phases:
+            preBuild:
+              commands:
+                - npm ci
+            build:
+              commands:
+                - npm run build
+          artifacts:
+            baseDirectory: .next
+            files:
+              - '**/*'
+          cache:
+            paths:
+              - node_modules/**/*
+              - .next/cache/**/*
   EOT
 
   # ---------------------------------------------------------------------------
