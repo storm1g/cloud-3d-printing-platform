@@ -48,3 +48,39 @@ module "slicing_engine" {
   public_subnet_ids = module.networking.public_subnet_ids
   security_group_id = module.networking.fargate_sg_id
 }
+
+module "serverless_platform" {
+  source = "../../modules/serverless_platform"
+
+  project_name = local.project_name
+  environment  = local.environment
+  region       = data.aws_region.current.id
+
+  # From storage module
+  jobs_table_name       = module.storage.jobs_table_name
+  uploads_bucket_name   = module.storage.uploads_bucket_name
+  uploads_bucket_arn    = module.storage.uploads_bucket_arn
+  processed_bucket_name = module.storage.processed_bucket_name
+  processed_bucket_arn  = module.storage.processed_bucket_arn
+
+  # From slicing_engine module
+  step_function_arn = module.slicing_engine.step_function_arn
+
+  # For DynamoDB stream trigger
+  dynamodb_stream_arn = module.storage.dynamodb_stream_arn
+}
+
+module "frontend_hosting" {
+  source = "../../modules/frontend_hosting"
+
+  project_name = local.project_name
+  environment  = local.environment
+
+  github_repository = var.github_repository
+  github_token      = var.github_token
+  github_branch     = var.github_branch
+
+  # Pass the live API Gateway URLs directly — Amplify injects them at build time
+  rest_api_endpoint = module.serverless_platform.http_api_endpoint
+  websocket_url     = module.serverless_platform.websocket_api_endpoint
+}

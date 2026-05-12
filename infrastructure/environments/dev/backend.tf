@@ -5,5 +5,6 @@ terraform {
     region         = "eu-central-1"
     dynamodb_table = "printujme-infra-locks"
     encrypt        = true
+    profile        = "printujme-mgmt"
   }
 }
