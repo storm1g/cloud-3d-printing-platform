@@ -67,3 +67,41 @@ resource "aws_s3_bucket_public_access_block" "block_public" {
   block_public_policy     = true
   restrict_public_buckets = true
 }
+
+# =============================================================================
+# SLICER CONFIG FILES
+#
+# The Fargate slicer container downloads these three files from S3 at the start
+# of every slicing job. They describe the printer hardware, print settings, and
+# filament properties — think of them as the "recipe" for the slicer.
+#
+# Using aws_s3_object here means:
+#   - The files are version-controlled in Git alongside the infrastructure
+#   - terraform apply automatically re-uploads if the file content changes
+#     (Terraform compares the etag/md5 hash of the local file vs S3)
+#   - No manual `aws s3 cp` steps needed in CI/CD
+#
+# path.module points to the directory containing this file (modules/storage/).
+# The config files live 3 levels up in apps/backend/slicer_config/.
+# =============================================================================
+
+locals {
+  slicer_config_files = {
+    "machine.json"  = "${path.module}/../../../apps/backend/slicer_config/machine.json"
+    "process.json"  = "${path.module}/../../../apps/backend/slicer_config/process.json"
+    "filament.json" = "${path.module}/../../../apps/backend/slicer_config/filament.json"
+  }
+}
+
+resource "aws_s3_object" "slicer_config" {
+  for_each = local.slicer_config_files
+
+  bucket = aws_s3_bucket.config.id
+  key    = each.key
+  source = each.value
+
+  # etag causes Terraform to re-upload the file whenever its content changes.
+  # Without this, Terraform would only track whether the object *exists*,
+  # not whether the content is up to date.
+  etag = filemd5(each.value)
+}

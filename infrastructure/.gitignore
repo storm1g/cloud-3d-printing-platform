@@ -4,6 +4,7 @@
 crash.log
 terraform.tfvars
 **/.builds/
+secrets.ps1
 override.tf
 override.tf.json
 *_override.tf
