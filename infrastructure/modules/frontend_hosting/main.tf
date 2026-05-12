@@ -68,8 +68,7 @@ resource "aws_amplify_app" "frontend" {
     NEXT_PUBLIC_REST_API_ENDPOINT = var.rest_api_endpoint
     NEXT_PUBLIC_WEBSOCKET_URL     = var.websocket_url
     # Tell Next.js we're running on Amplify's SSR compute platform
-    _CUSTOM_IMAGE   = "amplify:al2023"
-    AMPLIFY_MONOREPO_APP_ROOT = "apps/frontend"
+    _CUSTOM_IMAGE = "amplify:al2023"
   }
 }
 
