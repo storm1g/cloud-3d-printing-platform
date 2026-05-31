@@ -1,26 +1,298 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================
+   STATIC DESIGN TOKENS (spacing, typography, radius)
+   ============================================================ */
+@theme {
+  /* Spacing */
+  --spacing-unit: 4px;
+  --spacing-stack-sm: 8px;
+  --spacing-stack-md: 16px;
+  --spacing-stack-lg: 32px;
+  --spacing-gutter: 24px;
+  --spacing-margin-mobile: 16px;
+  --spacing-margin-desktop: 48px;
+  --spacing-section-gap: 64px;
+  --spacing-container-max: 1280px;
+
+  /* Border Radius */
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  /* Font Families */
+  --font-display-lg: var(--font-jakarta), sans-serif;
+  --font-headline-lg: var(--font-jakarta), sans-serif;
+  --font-headline-lg-mobile: var(--font-jakarta), sans-serif;
+  --font-headline-md: var(--font-jakarta), sans-serif;
+  --font-body-lg: var(--font-inter), sans-serif;
+  --font-body-md: var(--font-inter), sans-serif;
+  --font-label-md: var(--font-inter), sans-serif;
+  --font-label-sm: var(--font-inter), sans-serif;
+
+  /* Font Sizes */
+  --text-display-lg: 48px;
+  --text-display-lg--line-height: 1.1;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 1.2;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg-mobile: 24px;
+  --text-headline-lg-mobile--line-height: 1.2;
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 1.3;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.6;
+  --text-body-md: 16px;
+  --text-body-md--line-height: 1.5;
+  --text-label-md: 14px;
+  --text-label-md--line-height: 1.2;
+  --text-label-md--letter-spacing: 0.01em;
+  --text-label-sm: 12px;
+  --text-label-sm--line-height: 1.2;
 }
 
+/* ============================================================
+   DYNAMIC COLOR TOKENS (reference CSS custom properties)
+   ============================================================ */
 @theme inline {
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-secondary-fixed: var(--secondary-fixed);
+  --color-secondary-fixed-dim: var(--secondary-fixed-dim);
+  --color-on-secondary-fixed: var(--on-secondary-fixed);
+  --color-on-secondary-fixed-variant: var(--on-secondary-fixed-variant);
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-tertiary-fixed: var(--tertiary-fixed);
+  --color-tertiary-fixed-dim: var(--tertiary-fixed-dim);
+  --color-on-tertiary-fixed: var(--on-tertiary-fixed);
+  --color-on-tertiary-fixed-variant: var(--on-tertiary-fixed-variant);
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-on-background: var(--on-background);
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+  --color-inverse-primary: var(--inverse-primary);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-surface-variant: var(--surface-variant);
+  --color-surface-tint: var(--surface-tint);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@theme {
+  --animate-slide-down: slide-down 0.18s ease-out;
+}
+
+/* ============================================================
+   INTERACTIVE DEFAULTS
+   ============================================================ */
+button,
+[role="button"],
+label[for],
+summary {
+  cursor: pointer;
+}
+
+/* Buttons don't inherit font-family by default in browsers */
+button,
+[role="button"] {
+  font-family: var(--font-inter), sans-serif;
+}
+
+/* Label-scale text is always medium weight (500).
+   @layer base = below utilities, so font-semibold / font-bold still win. */
+@layer base {
+  .font-label-md,
+  .font-label-sm {
+    font-weight: 500;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================================
+   SMOOTH SCROLL
+   ============================================================ */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+}
+
+/* ============================================================
+   LIGHT MODE (default)
+   ============================================================ */
+:root {
+  --primary: #006b5f;
+  --on-primary: #ffffff;
+  --primary-container: #2dd4bf;
+  --on-primary-container: #00574d;
+  --primary-fixed: #62fae3;
+  --primary-fixed-dim: #3cddc7;
+  --on-primary-fixed: #00201c;
+  --on-primary-fixed-variant: #005047;
+  --secondary: #565e74;
+  --on-secondary: #ffffff;
+  --secondary-container: #dae2fd;
+  --on-secondary-container: #5c647a;
+  --secondary-fixed: #dae2fd;
+  --secondary-fixed-dim: #bec6e0;
+  --on-secondary-fixed: #131b2e;
+  --on-secondary-fixed-variant: #3f465c;
+  --tertiary: #8d4f00;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #ffac5a;
+  --on-tertiary-container: #744000;
+  --tertiary-fixed: #ffdcc0;
+  --tertiary-fixed-dim: #ffb875;
+  --on-tertiary-fixed: #2d1600;
+  --on-tertiary-fixed-variant: #6b3b00;
+  --background: #f7f9fb;
+  --on-background: #191c1e;
+  --surface: #f7f9fb;
+  --surface-dim: #d8dadc;
+  --surface-bright: #f7f9fb;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f2f4f6;
+  --surface-container: #eceef0;
+  --surface-container-high: #e6e8ea;
+  --surface-container-highest: #e0e3e5;
+  --on-surface: #191c1e;
+  --on-surface-variant: #3c4a46;
+  --outline: #6b7a76;
+  --outline-variant: #bacac5;
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+  --inverse-primary: #3cddc7;
+  --inverse-surface: #2d3133;
+  --inverse-on-surface: #eff1f3;
+  --surface-variant: #e0e3e5;
+  --surface-tint: #006b5f;
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+.dark {
+  --primary: #3cddc7;
+  --on-primary: #00201c;
+  --primary-container: #005047;
+  --on-primary-container: #62fae3;
+  --primary-fixed: #62fae3;
+  --primary-fixed-dim: #3cddc7;
+  --on-primary-fixed: #00201c;
+  --on-primary-fixed-variant: #005047;
+  --secondary: #bec6e0;
+  --on-secondary: #283041;
+  --secondary-container: #3e4659;
+  --on-secondary-container: #dae2fd;
+  --secondary-fixed: #dae2fd;
+  --secondary-fixed-dim: #bec6e0;
+  --on-secondary-fixed: #131b2e;
+  --on-secondary-fixed-variant: #3f465c;
+  --tertiary: #ffb875;
+  --on-tertiary: #4a2800;
+  --tertiary-container: #6b3b00;
+  --on-tertiary-container: #ffdcc0;
+  --tertiary-fixed: #ffdcc0;
+  --tertiary-fixed-dim: #ffb875;
+  --on-tertiary-fixed: #2d1600;
+  --on-tertiary-fixed-variant: #6b3b00;
+  --background: #0f1113;
+  --on-background: #e1e3e5;
+  --surface: #0f1113;
+  --surface-dim: #0a0c0e;
+  --surface-bright: #353a3c;
+  --surface-container-lowest: #090b0d;
+  --surface-container-low: #171a1c;
+  --surface-container: #1b1e20;
+  --surface-container-high: #252829;
+  --surface-container-highest: #303334;
+  --on-surface: #e1e3e5;
+  --on-surface-variant: #bec9c5;
+  --outline: #889490;
+  --outline-variant: #3c4a46;
+  --error: #ffb4ab;
+  --on-error: #690005;
+  --error-container: #93000a;
+  --on-error-container: #ffdad6;
+  --inverse-primary: #006b5f;
+  --inverse-surface: #e1e3e5;
+  --inverse-on-surface: #2d3133;
+  --surface-variant: #3c4a46;
+  --surface-tint: #3cddc7;
+}
+
+/* ============================================================
+   CUSTOM UTILITIES
+   ============================================================ */
+.progress-bar-stripes {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+  animation: progress-stripes 1s linear infinite;
+}
+
+@keyframes progress-stripes {
+  from { background-position: 1rem 0; }
+  to   { background-position: 0 0; }
+}
+
+.bg-blueprint {
+  background-image:
+    linear-gradient(to right, rgba(186, 202, 197, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(186, 202, 197, 0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-dot-grid {
+  background-image: radial-gradient(circle at 2px 2px, rgba(0, 107, 95, 0.12) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Material Symbols helper */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
 }
